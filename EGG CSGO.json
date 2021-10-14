@@ -1,0 +1,140 @@
+{
+    "_comment": "DO NOT EDIT: FILE GENERATED AUTOMATICALLY BY PTERODACTYL PANEL - PTERODACTYL.IO",
+    "meta": {
+        "version": "PTDL_v1",
+        "update_url": null
+    },
+    "exported_at": "2021-10-14T01:24:38-03:00",
+    "name": "Counter-Strike: Global Offensive",
+    "author": "support@pterodactyl.io",
+    "description": "Counter-Strike: Global Offensive is a multiplayer first-person shooter video game developed by Hidden Path Entertainment and Valve Corporation.",
+    "features": null,
+    "images": [
+        "quay.io\/pterodactyl\/core:source"
+    ],
+    "file_denylist": [],
+    "startup": ".\/srcds_run -game csgo -console -port {{SERVER_PORT}} +ip 0.0.0.0 +map {{SRCDS_MAP}} -strictportbind -norestart +sv_setsteamaccount {{STEAM_ACC}} +game_mode {{SRCDS_MODE}} +game_type {{SRCDS_TYPE}} -tickrate {{SRCDS_TICK}} -maxplayers_override {{SRCDS_SLOTS}} +tv_port {{SRCDS_GOTV}}",
+    "config": {
+        "files": "{\r\n    \"csgo\/cfg\/server.cfg\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"hostname\": \"hostname \\\"{{server.build.env.SRCDS_NAME}}\\\"\",\r\n            \"sv_password\": \"sv_password \\\"{{server.build.env.SRCDS_PASSW}}\\\"\",\r\n            \"rcon_password\": \"rcon_password \\\"{{server.build.env.SRCDS_PASS}}\\\"\",\r\n            \"sv_region\": \"sv_region \\\"{{server.build.env.SRCDS_REGION}}\\\"\",\r\n            \"sv_allowdownload\": \"sv_allowdownload 1\",\r\n            \"sv_allowupload\": \"sv_allowupload 0\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \"Connection to Steam servers successful\"\r\n}",
+        "logs": "{\r\n    \"custom\": true,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+        "stop": "quit"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n\r\nset -e\r\n\r\napt -y update\r\napt -y --no-install-recommends install curl lib32gcc1 ca-certificates\r\n\r\n## just in case someone removed the defaults.\r\nif [ \"${STEAM_USER}\" == \"\" ]; then\r\n    STEAM_USER=anonymous\r\n    STEAM_PASS=\"\"\r\n    STEAM_AUTH=\"\"\r\nfi\r\n\r\n# SteamCMD fails otherwise for some reason, even running as root.\r\n# This is changed at the end of the install process anyways.\r\nchown -R root:root \/mnt\r\nexport HOME=\/mnt\/server\r\n\r\n# Download Server.\r\n\r\ncd \/mnt\/server\r\ncurl -#SLo CSGO.tar.gz https:\/\/files.aloknetwork.co.uk\/CSGO.tar.gz\r\ntar -xzvf CSGO.tar.gz\r\ncd CSGO\r\nmv -- * \/mnt\/server\r\ncd ..\r\nrm -R CSGO.tar.gz CSGO\r\ncd \/mnt\/server\/steamcmd\r\n\r\n\r\n## set up 32 bit libraries\r\nmkdir -p \/mnt\/server\/.steam\/sdk32\r\ncp -f linux32\/steamclient.so ..\/.steam\/sdk32\/steamclient.so\r\n\r\n## set up 64 bit libraries\r\nmkdir -p \/mnt\/server\/.steam\/sdk64\r\ncp -f linux64\/steamclient.so ..\/.steam\/sdk64\/steamclient.so",
+            "container": "ubuntu:18.04",
+            "entrypoint": "bash"
+        }
+    },
+    "variables": [
+        {
+            "name": "Server Name",
+            "description": "[PT] - Nome para exibir na lista de servidores. [EN] - Name to display in server list.",
+            "env_variable": "SRCDS_NAME",
+            "default_value": "YOUR_SERVER_NAME",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|max:64"
+        },
+        {
+            "name": "MAP",
+            "description": "[PT] - Mapa padr\u00e3o na inicializa\u00e7\u00e3o do servidor. [EN] - Default map at server startup.",
+            "env_variable": "SRCDS_MAP",
+            "default_value": "de_mirage",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|string|alpha_dash"
+        },
+        {
+            "name": "Steam Token",
+            "description": "[PT] - O Steam Token necess\u00e1rio para que o servidor seja exibido publicamente. [EN] - The Steam Account Token required for the server to be displayed publicly.",
+            "env_variable": "STEAM_ACC",
+            "default_value": "STEAM_TOKEN",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "alpha_dash|max:32"
+        },
+        {
+            "name": "Source AppID",
+            "description": "Required for game to update on server restart. Do not modify this.",
+            "env_variable": "SRCDS_APPID",
+            "default_value": "740",
+            "user_viewable": false,
+            "user_editable": false,
+            "rules": "required|string|max:20"
+        },
+        {
+            "name": "GameMode",
+            "description": "[PT] - Modo de jogo do servidor (Valor padr\u00e3o: 1). [EN] - Server game mode (Default value: 1).",
+            "env_variable": "SRCDS_MODE",
+            "default_value": "1",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|digits:1|starts_with:0,1,2,3,4"
+        },
+        {
+            "name": "GameType",
+            "description": "[PT] - Tipo de jogo do servidor (Valor padr\u00e3o: 0). [EN] - Server game type (Default value: 0)",
+            "env_variable": "SRCDS_TYPE",
+            "default_value": "0",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|digits:1|starts_with:0,1,2,3,4,5,6"
+        },
+        {
+            "name": "TickRate",
+            "description": "[PT] - Tickrate do servidor (Valores permitidos: 64, 102.04, 128). [EN] - Server tickrate (Allowed values: 64, 102.04, 128)",
+            "env_variable": "SRCDS_TICK",
+            "default_value": "64",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|starts_with:64,102.04,128|min:2|max:6"
+        },
+        {
+            "name": "Max Players",
+            "description": "[PT] - N\u00famero de slots do servidor. [EN] - Number of server slots.",
+            "env_variable": "SRCDS_SLOTS",
+            "default_value": "12",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|numeric|min:1|max:16"
+        },
+        {
+            "name": "TV Port",
+            "description": "[PT] - Porta do servidor GOTV. [EN] - GOTV server port.",
+            "env_variable": "SRCDS_GOTV",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": false,
+            "rules": "required|numeric|digits:5"
+        },
+        {
+            "name": "Server Password",
+            "description": "[PT] - Senha do servidor. [EN] - Server Password",
+            "env_variable": "SRCDS_PASSW",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "string|nullable"
+        },
+        {
+            "name": "Rcon Password",
+            "description": "[PT] - Senha RCON do servidor. [EN] - Server RCON password.",
+            "env_variable": "SRCDS_PASS",
+            "default_value": "",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "nullable|string"
+        },
+        {
+            "name": "Server Region",
+            "description": "[PT] - Regi\u00e3o onde seu servidor ser\u00e1 exibido. [EN] - Region where your server will be displayed.",
+            "env_variable": "SRCDS_REGION",
+            "default_value": "2",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "required|starts_with:0,1,2,3,4,5,6,7,255"
+        }
+    ]
+}
