@@ -32,5 +32,12 @@ Firstly, to improve egg both in more basic options and in download speed from a 
 The standard egg in my region takes around 30-40 minutes to download.
 With my egg, this is down to 10 minutes.
 
+### Attention!
+
+If you are going to use this, please allocate at least `70 GB` of server space in your panel, this is in case someone uses the option to reinstall the server via the client front-end.<br>
+If the value is below 70 GB, the reinstall may fail.
+This is just to avoid this problem, since pterodactyl does not delete the old server in this process, which ends up adding 30 GB of server with another 30 GB of the new server.
+
+
 
 
